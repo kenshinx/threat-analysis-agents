@@ -2,6 +2,7 @@ import gradio as gr
 import asyncio
 from typing import List
 from agents import Runner, RunConfig
+from openai.types.responses import ResponseTextDeltaEvent
 from xagents import triage_agent
 from manager import VolcanoEngineClient, VolModelProvider
 from mcps.mcp_servers import (ip_mcp_server,
@@ -34,49 +35,48 @@ def handle_input_and_history(user_input: str, history: List[List[str]]) -> List[
     messages.append({"role": "user", "content": user_input})
     return messages
 
-# Function to handle user input and interact with triage_agent
+# Function to handle user input and interact with triage_agent in a streaming manner
 
 
-async def chat_with_agent(user_input, history):
+async def chat_with_agent_stream(user_input, history):
     messages = handle_input_and_history(user_input, history)
     try:
-        await ip_mcp_server.connect()
-        await basic_mcp_server.connect()
-        await domain_mcp_server.connect()
-        # Run the triage_agent with the user input
-        result = await Runner.run(
+        result_stream = Runner.run_streamed(
             triage_agent,
             messages,
             run_config=RunConfig(model_provider=model_provider,
                                  workflow_name="ctia_threat_analysis_agents")
         )
-        return result.final_output
+        full_content = ""
+        async for event in result_stream.stream_events():
+            if event.type == "raw_response_event" and isinstance(event.data, ResponseTextDeltaEvent):
+                full_content += event.data.delta
+                yield {"role": "assistant", "content": full_content}
     except Exception as e:
+        yield {"role": "assistant", "content": f"Error: {e}"}
         raise e
-        return str(e)
 
-# Gradio ChatInterface
-with gr.Blocks() as chatbot:
+# Wrapper to handle streaming results for Gradio
+
+
+async def chat_with_agent_stream_wrapper(user_input, history):
+    await initialize_mcp_servers()  # Ensure MCP servers are initialized
+    async for message in chat_with_agent_stream(user_input, history):
+        yield message
+
+# Gradio ChatInterface with streaming
+with gr.Blocks(theme=gr.themes.Monochrome()) as chatbot:
     gr.ChatInterface(
-        fn=lambda user_input, history: asyncio.run(
-            chat_with_agent(user_input, history)),
-        chatbot=gr.Chatbot(height=500),
+        fn=chat_with_agent_stream_wrapper,  # Use the wrapper to handle streaming
+        chatbot=gr.Chatbot(height=700),
         textbox=gr.Textbox(
             placeholder="Analyze Domain/IP/Hash/Vuln/CVE",
-            label="User Input",),
+            label="User Input",
+        ),
         title="Cybersecurity Analyze Agent",
         description="Ask me anything about cybersecurity threats!",
         cache_examples=True,
-        type="messages"
+        type="messages",
     )
 
-
-async def main():
-    # Initialize MCP servers at startup
-    await initialize_mcp_servers()
-
-    # Launch the Gradio app
-    chatbot.launch()
-
-if __name__ == "__main__":
-    asyncio.run(main())
+chatbot.launch()
