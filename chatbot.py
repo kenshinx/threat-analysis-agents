@@ -13,9 +13,19 @@ from mcps.mcp_servers import (ip_mcp_server,
 client = VolcanoEngineClient()
 model_provider = VolModelProvider(client)
 
+# Initialize MCP servers at startup
+
+
+async def initialize_mcp_servers():
+    await ip_mcp_server.connect()
+    await basic_mcp_server.connect()
+    await domain_mcp_server.connect()
+
+
+# Function to handle user input and history for the openai agent need formation
+
 
 def handle_input_and_history(user_input: str, history: List[List[str]]) -> List[List[str]]:
-    # handle the user input and history, accroding to OpenAI Message format
     if not user_input.strip():
         return history
     messages = []
@@ -24,16 +34,16 @@ def handle_input_and_history(user_input: str, history: List[List[str]]) -> List[
     messages.append({"role": "user", "content": user_input})
     return messages
 
+# Function to handle user input and interact with triage_agent
+
 
 async def chat_with_agent(user_input, history):
-    print(f"User input: {user_input}")
-    print(f"Chat history: {history}")
     messages = handle_input_and_history(user_input, history)
     try:
-        # Run the triage_agent with the user input
         await ip_mcp_server.connect()
         await basic_mcp_server.connect()
         await domain_mcp_server.connect()
+        # Run the triage_agent with the user input
         result = await Runner.run(
             triage_agent,
             messages,
@@ -42,6 +52,7 @@ async def chat_with_agent(user_input, history):
         )
         return result.final_output
     except Exception as e:
+        raise e
         return str(e)
 
 # Gradio ChatInterface
@@ -59,5 +70,13 @@ with gr.Blocks() as chatbot:
         type="messages"
     )
 
-if __name__ == "__main__":
+
+async def main():
+    # Initialize MCP servers at startup
+    await initialize_mcp_servers()
+
+    # Launch the Gradio app
     chatbot.launch()
+
+if __name__ == "__main__":
+    asyncio.run(main())
