@@ -25,10 +25,20 @@ poetry install
 
 ## Usage
 
-Run the main analysis agent:
+To use the Threat Analysis Agents, you can run it in two ways:
+
+### 1. Command Line Interface (CLI)
+Run the following command to analyze a security query directly from the shell:
 ```bash
 poetry run python main.py "your security query here"
 ```
+
+### 2. Web Interface
+Launch a Gradio-based web chatbot for interactive analysis:
+```bash
+poetry run python chatbot.py
+```
+
 
 Example queries:
 - "Analyze the domain example.com"
