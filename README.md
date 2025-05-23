@@ -34,11 +34,11 @@ poetry run python main.py "your security query here"
 ```
 
 ### 2. Web Interface
-Launch a Gradio-based web chatbot for interactive analysis:
+Launch a simple Gradio-based web chatbot for interactive analysis:
 ```bash
 poetry run python chatbot.py
 ```
-
+![screenshot](https://github.com/kenshinx/threat-analysis-agents/blob/master/threat_analyze_agent_screenshoot.png)
 
 Example queries:
 - "Analyze the domain example.com"
