@@ -4,6 +4,8 @@ from pydantic import BaseModel
 
 from .base import fetch_fdp_api
 
+MAX_PDNS_RECORDS = 200
+
 
 class PDNSRecord(BaseModel):
     rrname: str
@@ -35,4 +37,4 @@ async def pdns_lookup(domain: str) -> list[PDNSRecord]:
             lseen=datetime.fromtimestamp(item["time_last"])
         )
         records.append(r)
-    return records
+    return records[:MAX_PDNS_RECORDS]
