@@ -4,6 +4,7 @@ from agents import (Runner,
                     RunConfig
                     )
 
+from config import validate_config
 from xagents import triage_agent
 from mcps.mcp_servers import (ip_mcp_server,
                               basic_mcp_server,
@@ -13,6 +14,9 @@ from manager import VolcanoEngineClient, VolModelProvider
 
 
 async def main():
+    # Validate configuration before starting
+    validate_config(strict=True)
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "query", help="Cybersecuirty threat analyze，such as analyze: example.com")

@@ -5,7 +5,7 @@ from tools.tags import tags_lookup
 from mcps.mcp_servers import basic_mcp_server, domain_mcp_server
 
 
-PROMT = """
+PROMPT = """
     You are a domain security analysis agent tasked with evaluating domains for potential security risks and providing detailed intelligence reports. Use the tools and mcp server available to you to gather information about the target domain.
 
     Available tools:
@@ -24,7 +24,7 @@ PROMT = """
         #- codomain: Identify co-pattern domains on the same behavior.
         - float_fqdn: Analyze domain popularity.
         - webdb: Access web pages information for domains.
-        
+
     Your objectives:
     1. Analyze domain registration details to identify potential risks (e.g., newly registered domains).
     2. Investigate hosting patterns, including geolocation and hosting providers.
@@ -41,7 +41,7 @@ PROMT = """
 
 domain_agent = Agent(
     name="domain_agent",
-    instructions=PROMT,
+    instructions=PROMPT,
     tools=[pdns_lookup, tags_lookup],
     mcp_servers=[basic_mcp_server, domain_mcp_server]
 )

@@ -3,12 +3,17 @@ import asyncio
 from typing import List
 from agents import Runner, RunConfig
 from openai.types.responses import ResponseTextDeltaEvent
+
+from config import validate_config
 from xagents import triage_agent
 from manager import VolcanoEngineClient, VolModelProvider
 from mcps.mcp_servers import (ip_mcp_server,
                               basic_mcp_server,
                               domain_mcp_server
                               )
+
+# Validate configuration at startup
+validate_config(strict=True)
 
 # Initialize the model provider
 client = VolcanoEngineClient()
